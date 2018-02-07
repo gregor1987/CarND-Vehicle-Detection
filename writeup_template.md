@@ -20,8 +20,9 @@ The goals / steps of this project are the following:
 [image3]: ./examples/scale1_test5.jpg
 [image4]: ./examples/scale2.0_test5.jpg
 [image5]: ./examples/scale3.5_test5.jpg
-[image6]: ./examples/labels_map.png
-[image7]: ./examples/output_bboxes.png
+[image6]: ./examples/boxes_test6.jpg
+[image7]: ./examples/heat7.png
+[image8]: ./examples/output_test5.jpg
 [video1]: ./project_video.mp4
 
 ## [Rubric](https://review.udacity.com/#!/rubrics/513/view) Points
@@ -78,9 +79,11 @@ For the sliding window search I set the region of interest on the on the lower i
 
 #### 2. Show some examples of test images to demonstrate how your pipeline is working.  What did you do to optimize the performance of your classifier?
 
-Ultimately I searched on two scales using YCrCb 3-channel HOG features plus spatially binned color and histograms of color in the feature vector, which provided a nice result.  Here are some example images:
+The image below shows the overall result of the sliding window search, adding up the detection from different search window sizes:  
 
-![alt text][image4]
+![alt text][image6]
+
+
 ---
 
 ### Video Implementation
@@ -91,9 +94,17 @@ Here's a [link to my video result](./project_video.mp4)
 
 #### 2. Describe how (and identify where in your code) you implemented some kind of filter for false positives and some method for combining overlapping bounding boxes.
 
-I recorded the positions of positive detections in each frame of the video.  From the positive detections I created a heatmap and then thresholded that map to identify vehicle positions.  I then used `scipy.ndimage.measurements.label()` to identify individual blobs in the heatmap.  I then assumed each blob corresponded to a vehicle.  I constructed bounding boxes to cover the area of each blob detected.  
+**Heat map and plausibilization**(lines 145 through 197 in `cars.py`)
+Having multiple detections, a heat map can be applied (left side of the image below). For plausibilzation of the detection I used a combination of 
 
-Here's an example result showing the heatmap from a series of frames of video, the result of `scipy.ndimage.measurements.label()` and the bounding boxes then overlaid on the last frame of video:
+1. `Thresholding of the heatmap`  
+   Only areas of the image, which had more than one detection, were selected valid.   
+2. Applying `scipy.ndimage.measurements.label()` to identify individual blobs in the heatmap
+3. `History evaluation`  
+    It is evaluated if a car had been already detected in the labeled area of the image in a previous frame. If true, the detection is considered valid.
+
+![alt text][image7]
+![alt text][image8]
 
 ### Here are six frames and their corresponding heatmaps:
 
