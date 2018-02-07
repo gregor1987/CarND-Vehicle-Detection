@@ -92,11 +92,11 @@ def run(video=False):
         utils.save(output, file_names, None)
     # Video=True: Process videos or consecutive images
     else:
-        # file_path = glob(join(c.VIDEO_TEST_PATH, '*.mp4'))
-        # frames = utils.read_input(file_path[0], video=True)
-        file_path = glob(join(c.FRAMES_TEST_PATH, '*.jpg'))
-        file_names = os.listdir(c.FRAMES_TEST_PATH)
-        frames = utils.read_input(file_path)
+        file_path = glob(join(c.VIDEO_TEST_PATH, '*.mp4'))
+        frames = utils.read_input(file_path[0], video=True)
+        # file_path = glob(join(c.FRAMES_TEST_PATH, '*.jpg'))
+        # file_names = os.listdir(c.FRAMES_TEST_PATH)
+        # frames = utils.read_input(file_path)
         fourcc = cv2.VideoWriter_fourcc('m', 'p', '4', 'v')
         output_video = cv2.VideoWriter(c.VIDEO_SAVE_PATH + 'test2_video.mp4', fourcc, 25.0, (1280,720))
         # Run lanes_pipeline in batches
