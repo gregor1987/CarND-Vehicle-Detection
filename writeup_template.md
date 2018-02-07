@@ -79,7 +79,7 @@ For the sliding window search I set the region of interest on the on the lower i
 
 #### 2. Show some examples of test images to demonstrate how your pipeline is working.  What did you do to optimize the performance of your classifier?
 
-The image below shows the overall result of the sliding window search, adding up the detection from different search window sizes:  
+The image below shows the overall result of the sliding window search, adding up the detection from different search window sizes. One the left side we can see a false positive detection. This false positive, however, can be easily filtered by considering car detections only valid if minimum number of search windows detected a car in the same area of the image.  
 
 ![alt text][image6]
 
