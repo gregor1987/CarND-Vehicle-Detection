@@ -15,13 +15,14 @@ The goals / steps of this project are the following:
 * Estimate a bounding box for vehicles detected.
 
 [//]: # (Image References)
-[image1]: ./examples/car_not_car.png
-[image2]: ./examples/HOG_example.jpg
-[image3]: ./examples/sliding_windows.jpg
-[image4]: ./examples/sliding_window.jpg
-[image5]: ./examples/bboxes_and_heat.png
-[image6]: ./examples/labels_map.png
-[image7]: ./examples/output_bboxes.png
+[image1]: ./examples/TrainingData.png
+[image2]: ./examples/HOG.png
+[image3]: ./examples/scale1_test5.jpg
+[image4]: ./examples/scale2.0_test5.jpg
+[image5]: ./examples/scale3.5_test5.jpg
+[image6]: ./examples/boxes_test6.jpg
+[image7]: ./examples/heat7.png
+[image8]: ./examples/output_test5.jpg
 [video1]: ./project_video.mp4
 
 ## [Rubric](https://review.udacity.com/#!/rubrics/513/view) Points
@@ -38,40 +39,51 @@ You're reading it!
 
 #### 1. Explain how (and identify where in your code) you extracted HOG features from the training images.
 
-The code for this step is contained in the first code cell of the IPython notebook (or in lines # through # of the file called `some_file.py`).  
-
-I started by reading in all the `vehicle` and `non-vehicle` images.  Here is an example of one of each of the `vehicle` and `non-vehicle` classes:
+**Loading training data** (`def load_training_data()`: line 25 in `hog.py`)  
+The first step was to load all training images and "label" them by seperating `vehicle` from `non-vehicle` images. I used the images from both, KITTI and GTI data base. Some examples of the labeled data:
 
 ![alt text][image1]
 
-I then explored different color spaces and different `skimage.hog()` parameters (`orientations`, `pixels_per_cell`, and `cells_per_block`).  I grabbed random images from each of the two classes and displayed them to get a feel for what the `skimage.hog()` output looks like.
+#### 2. Explain how you settled on your final choice of HOG parameters.
 
-Here is an example using the `YCrCb` color space and HOG parameters of `orientations=8`, `pixels_per_cell=(8, 8)` and `cells_per_block=(2, 2)`:
+**HOG feature extractor** (`def extract_features()`: line 104 in `hog.py`)  
+As a next step the classified images were fed into the HOG feature extractor. I decided against the color features and used instead only the hog features. 
+I took an empirical approach to find the best setup for the HOG feature extractor. I played with different setups and color spaces and applied them to the test images. In the end, the best setup I found was the following:  
 
+    Color space = "HLS"  
+    Orientations = 15  
+    Pixels per cell = 8  
+    Cells per block = 2  
+    HOG channels = 'ALL'  
+    Accuracy = 98.54
+
+Here is an example appling the setup above:  
 
 ![alt text][image2]
 
-#### 2. Explain how you settled on your final choice of HOG parameters.
-
-I tried various combinations of parameters and...
-
 #### 3. Describe how (and identify where in your code) you trained a classifier using your selected HOG features (and color features if you used them).
 
-I trained a linear SVM using...
+**Training the SVM model** (`def train_model()`: line 148 in `hog.py`)  
+The extracted features are then scaled using a standard scaler, split into training and test data and then fed into a linear support vector machine.
 
 ### Sliding Window Search
 
 #### 1. Describe how (and identify where in your code) you implemented a sliding window search.  How did you decide what scales to search and how much to overlap windows?
 
-I decided to search random window positions at random scales all over the image and came up with this (ok just kidding I didn't actually ;):
+**Sliding window search** (`def find_cars(img, scaler, model)`: line 83 in `cars.py`)  
+For the sliding window search I set the region of interest on the on the lower image area (y-position > 400 pixels). As smallest search window size I used 64x64 (as the training data). These search windows I scaled up to 224x224 size in 5 steps (`scale = [1.0, 1.5, 2.0, 2.5, 3.5]`), focussing with the small windows on the horizontal center of the image and with the bigger search windows also on the lower part of the image (cars in the foreground appear bigger). It showed, that an overlay of 0.75 in each direction, x and y, gave the best results. Below I show the search windows for the scales `1.0`, `2.0` and `3.5`.  
 
 ![alt text][image3]
+![alt text][image4]
+![alt text][image5]
 
 #### 2. Show some examples of test images to demonstrate how your pipeline is working.  What did you do to optimize the performance of your classifier?
 
-Ultimately I searched on two scales using YCrCb 3-channel HOG features plus spatially binned color and histograms of color in the feature vector, which provided a nice result.  Here are some example images:
+The image below shows the overall result of the sliding window search, adding up the detection from different search window sizes. One the left side we can see a false positive detection. This false positive, however, can be easily filtered by considering car detections only valid if minimum number of search windows detected a car in the same area of the image.  
 
-![alt text][image4]
+![alt text][image6]
+
+
 ---
 
 ### Video Implementation
@@ -82,9 +94,17 @@ Here's a [link to my video result](./project_video.mp4)
 
 #### 2. Describe how (and identify where in your code) you implemented some kind of filter for false positives and some method for combining overlapping bounding boxes.
 
-I recorded the positions of positive detections in each frame of the video.  From the positive detections I created a heatmap and then thresholded that map to identify vehicle positions.  I then used `scipy.ndimage.measurements.label()` to identify individual blobs in the heatmap.  I then assumed each blob corresponded to a vehicle.  I constructed bounding boxes to cover the area of each blob detected.  
+**Heat map and plausibilization**(lines 145 through 197 in `cars.py`)
+Having multiple detections, a heat map can be applied (left side of the image below). For plausibilzation of the detection I used a combination of 
 
-Here's an example result showing the heatmap from a series of frames of video, the result of `scipy.ndimage.measurements.label()` and the bounding boxes then overlaid on the last frame of video:
+1. `Thresholding of the heatmap`  
+   Only areas of the image, which had more than one detection, were selected valid.   
+2. Applying `scipy.ndimage.measurements.label()` to identify individual blobs in the heatmap
+3. `History evaluation`  
+    It is evaluated if a car had been already detected in the labeled area of the image in a previous frame. If true, the detection is considered valid.
+
+![alt text][image7]
+![alt text][image8]
 
 ### Here are six frames and their corresponding heatmaps:
 
